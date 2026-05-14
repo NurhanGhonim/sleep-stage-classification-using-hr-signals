@@ -1,175 +1,125 @@
-# Sleep Stage Classification Using Heart-Related Physiological Signals
+# Heart Rate Based Sleep Stage Classification
 
-## Overview
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-orange.svg)](https://www.tensorflow.org/)
+[![MNE](https://img.shields.io/badge/MNE-Python-007ACC.svg)](https://mne.tools/)
 
-This project implements a deep learning pipeline for automated sleep stage classification using heart-related physiological signals. The model processes sequential biosignals, extracts physiological features, and classifies sleep into five stages: Wake, N1, N2, N3, and REM.
+A deep learning pipeline for **automatic sleep stage classification** using only **Heart Rate (HR)** signal from the MESA dataset.
 
-The system combines physiological feature engineering with sequential neural networks to capture temporal dependencies in sleep dynamics.
+---
+
+## 📋 Project Overview
+
+This project classifies sleep stages (Wake, N1, N2, N3, REM) using **Heart Rate variability features** extracted from EDF files. It combines traditional feature engineering with a Bidirectional GRU model, achieving robust performance despite using only one physiological channel.
+
+### Key Features
+- Full data preprocessing pipeline (EDF + XML annotations)
+- Hand-crafted HRV feature extraction
+- Sequence modeling with Bidirectional GRU
+- Class weighting to handle severe class imbalance (especially N1)
+- Professional logging and visualization
+- Ready for GitHub and further research
 
 ---
 
-## Motivation
+##  Project Structure
 
-Sleep is essential for physiological and cognitive health. Traditional sleep staging using polysomnography (PSG) is:
+```bash
+mesa-hr-sleep-staging/
+├── main.py                     # Main script (run this)
+├── best_sleep_model.keras      # Best saved model
+├── requirements.txt
+├── README.md
+├── results/
+│   ├── confusion_matrix.png
+│   └── training_curves.png
+└── Dataset/                    # (Not included - add your own)
+    ├── signals/
+    └── annotations/
 
-- Expensive
-- Clinically complex
-- Sensor intensive
-- Manually scored
+```
+Installation
 
-This project explores a wearable-friendly alternative using heart-related signals for scalable sleep monitoring.
+Clone the repository:
 
----
+```Bash
+git clone https://github.com/NurhanGhonim/sleep-stage-classification-using-hr-signals.git
+cd mesa-hr-sleep-staging
+```
+
+Install dependencies:
+```bash
+Bashpip install -r requirements.txt
+```
+
+ Requirements
+ ```txt
+txttensorflow>=2.10.0
+mne>=1.0.0
+numpy
+pandas
+scikit-learn
+matplotlib
+seaborn
+```
+
+## How to Run
+```bash
+Bashpython main.py
+```
+The script will:
+
+Load and parse EDF + XML files
+Extract HR epochs and features
+Train the Bidirectional GRU model
+Evaluate and generate plots
 
 ## Dataset
 
-- Subjects: 10  
-- Total epochs: 12,758  
-- Epoch duration: 30 seconds  
-- Signal length: 7680 samples  
+Dataset: MESA (Multi-Ethnic Study of Atherosclerosis) Sleep Dataset
+Signal Used: Heart Rate (HR) only
+Annotation: XML scored events
+Epoch Length: 30 seconds
+Classes: Wake (0), N1 (1), N2 (2), N3 (3), REM (4)
 
-### Class Distribution
-
-- Wake: 5,569  
-- N1: 942  
-- N2: 4,117  
-- N3: 869  
-- REM: 1,261  
-
----
-
-## Key Challenge
-
-The dataset is highly imbalanced, especially in N1 and N3 stages. To address this, class-weighted loss is used to reduce bias toward majority classes and improve minority stage detection.
-
----
-
-## Methodology
-
-### 1. Signal Processing
-
-- EDF signals processed using MNE
-- Sleep annotations extracted from XML files
-- Segmentation into 30-second epochs
-
----
-
-### 2. Feature Engineering
-
-Each epoch is transformed into an 8-dimensional feature vector:
-
-- Mean
-- Standard Deviation
-- Range
-- RMSSD
-- MAD
-- Energy
-- Skewness
-- Slope
-
-This reduces noise and improves computational efficiency while preserving physiological meaning.
-
----
-
-### 3. Sequence Construction
-
-- Sequence length: 15 epochs  
-- Temporal context: 7.5 minutes  
-
-Each input represents a sequence of physiological states to capture sleep transitions over time.
-
----
 
 ## Model Architecture
 
-The model is a Bidirectional GRU-based sequential neural network.
+Input: Sequence of 15 hand-crafted HRV features
+Architecture: Bidirectional GRU (160 → 80)
+Regularization: Dropout + L2 + Batch Normalization
+Optimizer: Adam (lr=0.0015) with gradient clipping
 
-### Input Layer
-- Shape: (15, 8)
 
-### GRU Layers
+ ## Results
+(Add your best results here after training)
+Example:
 
-- Bidirectional GRU (160 units)
-  - return_sequences=True
-  - Learns long-term temporal dependencies
+Test Accuracy: 82.4%
+Macro F1-Score: 0.78
 
-- Bidirectional GRU (80 units)
-  - Produces compact temporal representation
 
-### Dense Layer
-- 160 units
-- ReLU activation
+## Future Improvements
 
-### Regularization
-- Batch Normalization
-- Dropout
+Add more HRV features (Frequency domain, Poincaré plot, etc.)
+Patient-wise cross-validation
+Transformer or Temporal Convolutional Network (TCN)
+Real-time inference support
+Integration with wearable devices
+Add another signal/signals
 
-### Output Layer
-- 5 neurons
-- Softmax activation
 
----
+## License
+This project is licensed under the MIT License — see the LICENSE file for details.
 
-## Model Intuition
+## Acknowledgments
 
-The model learns sleep as a temporal process:
+MESA Study researchers and data providers
+MNE-Python team
+TensorFlow community
 
-- It analyzes sequences of physiological signals
-- Captures transitions between sleep stages
-- Uses bidirectional context for better temporal understanding
-- Outputs probability distribution over sleep stages
 
----
+## Contact
+Nurhan Ghonim
 
-## Training Configuration
-
-- Loss: Sparse Categorical Crossentropy  
-- Optimizer: Adam  
-- Gradient clipping: 1.0  
-- Class weights: applied  
-
----
-
-## Evaluation Metrics
-
-- Accuracy  
-- Precision  
-- Recall  
-- F1-score  
-- Confusion Matrix  
-
----
-
-## Key Advantages
-
-- Wearable-compatible design  
-- Low-dimensional feature representation  
-- Temporal modeling of sleep stages  
-- Robust handling of class imbalance  
-- Efficient and scalable architecture  
-
----
-
-## Technologies Used
-
-- Python  
-- TensorFlow / Keras  
-- MNE  
-- NumPy  
-- Pandas  
-- Scikit-learn  
-
----
-
-## Conclusion
-
-This project demonstrates that heart-related physiological signals combined with Bidirectional GRU networks can effectively classify sleep stages in a scalable and non-invasive manner.
-
----
-
-## Future Work
-
-- Multimodal fusion with EEG and respiration  
-- Real-time wearable deployment  
-- Model compression for edge devices  
-- Improved cross-subject generalization  
+GitHub: @NurhanGhonim
